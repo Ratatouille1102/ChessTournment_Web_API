@@ -1,0 +1,9 @@
+﻿CREATE FUNCTION [X_SF_Usr_Age]
+(
+	@Usr_Birthdate datetime
+)
+RETURNS INT
+AS
+BEGIN
+	RETURN DATEDIFF(YEAR,@Usr_Birthdate,GETDATE())
+END
