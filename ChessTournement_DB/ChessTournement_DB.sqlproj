@@ -109,9 +109,9 @@
     <Build Include="Stored Procedures\X_SP_CreateMatch.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ChessTournement_DB.publish.xml" />
+    <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="Script.PostDeployment.sql" />
+    <None Include="ChessTournement_DB.publish.xml" />
   </ItemGroup>
 </Project>
