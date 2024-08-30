@@ -2,6 +2,7 @@
     @Sub_Usr_Id INT,
     @Sub_Trn_Id INT,
     @Sub_Date   DATETIME,
+    @Points     FLOAT,
     @Sub_Active BIT
 )
 AS

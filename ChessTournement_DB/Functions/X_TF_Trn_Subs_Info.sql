@@ -4,6 +4,6 @@
 )
 RETURNS TABLE
 AS
-RETURN SELECT Sub_Trn_Id,Sub_Usr_Id,Sub_Date,Sub_Active
+RETURN SELECT *
 FROM Subscribe
 WHERE ( Sub_Trn_Id = @Sub_Trn_Id );

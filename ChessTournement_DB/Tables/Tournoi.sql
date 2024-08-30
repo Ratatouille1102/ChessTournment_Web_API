@@ -33,20 +33,45 @@
 GO
 
 CREATE TRIGGER [dbo].[TR_Trn_Status_Update]
-    ON [dbo].[Tournoi]
-    FOR UPDATE
-    AS
+ON [dbo].[Tournoi]
+AFTER UPDATE
+AS
+BEGIN
+    DECLARE @Trn_Id INT;
+    DECLARE @Old_Trn_Status INT;
+    DECLARE @New_Trn_Status INT;
+
+    -- Récupérer l'ID du tournoi mis à jour
+    SELECT @Trn_Id = INSERTED.Trn_Id FROM INSERTED;
+
+    -- Récupérer les anciennes et nouvelles valeurs de Trn_Status
+    SELECT @Old_Trn_Status = DELETED.Trn_Status, @New_Trn_Status = INSERTED.Trn_Status
+    FROM INSERTED
+    JOIN DELETED ON INSERTED.Trn_Id = DELETED.Trn_Id;
+
+    -- Si le statut est passé de 0 à 1
+    IF @Old_Trn_Status = 0 AND @New_Trn_Status = 1
     BEGIN
-        IF EXISTS (SELECT 1 FROM INSERTED WHERE Trn_Status = 1)
-        BEGIN
-            DECLARE @Trn_Id INT;
-            SELECT @Trn_Id = Trn_Id FROM INSERTED WHERE Trn_Status = 1;
-            EXEC X_SP_CreatMatch @Trn_Id;
-                        -- Mettre à jour la ronde courante et la date de mise à jour
-                UPDATE [dbo].[Tournoi]
-                SET Trn_Round = 1, Trn_UpdDate = GETDATE()
-                 WHERE Trn_Id = @Trn_Id;
-        END
-    END;
+        -- Appeler la procédure pour créer les matchs
+        EXEC X_SP_CreatMatch @Trn_Id;
+
+        -- Incrémenter la ronde courante du tournoi
+        UPDATE [dbo].[Tournoi]
+        SET Trn_Round = Trn_Round + 1, Trn_UpdDate = GETDATE()
+        WHERE Trn_Id = @Trn_Id;
+    END
+    -- Si le statut est déjà à 1
+    ELSE IF @New_Trn_Status = 1
+    BEGIN
+        -- Appeler la procédure pour passer à la ronde suivante
+        EXEC X_SP_NextRound @Trn_Id;
+
+        -- Mettre à jour la date de mise à jour
+        UPDATE [dbo].[Tournoi]
+        SET Trn_UpdDate = GETDATE()
+        WHERE Trn_Id = @Trn_Id;
+    END
+END;
 GO
+
 

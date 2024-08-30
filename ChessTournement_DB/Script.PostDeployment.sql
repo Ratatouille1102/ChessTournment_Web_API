@@ -103,6 +103,7 @@ INSERT INTO [dbo].[Subscribe] ([Sub_Usr_Id], [Sub_Trn_Id], [Sub_Date], [Sub_Acti
 INSERT INTO [dbo].[Subscribe] ([Sub_Usr_Id], [Sub_Trn_Id], [Sub_Date], [Sub_Active]) VALUES (30, 1, N'2024-08-21 10:34:59', 1)
 INSERT INTO [dbo].[Subscribe] ([Sub_Usr_Id], [Sub_Trn_Id], [Sub_Date], [Sub_Active]) VALUES (31, 1, N'2024-08-21 10:34:59', 1)
 INSERT INTO [dbo].[Subscribe] ([Sub_Usr_Id], [Sub_Trn_Id], [Sub_Date], [Sub_Active]) VALUES (32, 1, N'2024-08-21 10:34:59', 1)
+INSERT INTO [dbo].[Subscribe] ([Sub_Usr_Id], [Sub_Trn_Id], [Sub_Date], [Sub_Active]) VALUES (33, 1, N'2024-08-21 10:34:59', 1)
 
 GO
 INSERT INTO [dbo].[Cat_Trn] ([Cat_Id], [Trn_Id]) VALUES (0, 1)
