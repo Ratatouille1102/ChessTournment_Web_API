@@ -41,5 +41,5 @@ BEGIN
             @ErrorState = ERROR_STATE();
 
         RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
-    END CATCH
+    END CATCH 
 END;
