@@ -73,7 +73,7 @@
     <Build Include="Functions\X_SF_GetPostSalt.sql" />
     <Build Include="Functions\X_SF_GetPreSalt.sql" />
     <Build Include="Functions\X_SF_HashAndSalt_Password.sql" />
-    <Build Include="Functions\X_SF_Trn_Round_Range_old.sql" />
+    <Build Include="Functions\X_SF_Trn_Round_Range.sql" />
     <Build Include="Functions\X_SF_Count_Usr_Trn_Subs.sql" />
     <Build Include="Functions\X_SF_Usr_Cat.sql" />
     <Build Include="Functions\X_SF_Usr_Bd_Trn_EndSubs.sql" />
@@ -107,17 +107,11 @@
     <Build Include="Functions\X_SF_Trn_CategoriesWithSeprators.sql" />
     <Build Include="Stored Procedures\X_SP_V_Lst_Trn_On_UpdDate.sql" />
     <Build Include="Stored Procedures\X_SP_CreateMatch.sql" />
-    <Build Include="Stored Procedures\X_SP_Encode_Results.sql" />
-    <Build Include="Stored Procedures\X_SP_NextRound.sql" />
-    <Build Include="Stored Procedures\X_SP_GetScoreboard.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ChessTournement_DB.publish.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <RefactorLog Include="ChessTournement_DB.refactorlog" />
   </ItemGroup>
 </Project>

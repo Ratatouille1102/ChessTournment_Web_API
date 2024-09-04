@@ -1,342 +1,10 @@
 ﻿CREATE PROCEDURE X_SP_CreatMatch(@Trn_Id INT)
 AS
 BEGIN
-    BEGIN TRY
-        -- Vérifier et mettre à jour le statut du tournoi
-        DECLARE @PlayerCount INT;
-        DECLARE @Trn_MinUsers INT;
-        DECLARE @Trn_MaxUsers INT;
-        DECLARE @Trn_EndSubs DATETIME;
 
-        -- Compter le nombre de joueurs inscrits
-        SELECT @PlayerCount = COUNT(*)
-        FROM Subscribe
-        WHERE Sub_Trn_Id = @Trn_Id;
 
-        -- Obtenir le nombre minimum et maximum de joueurs requis
-        SELECT @Trn_MinUsers = Trn_MinUsers, @Trn_MaxUsers = Trn_MaxUsers, @Trn_EndSubs = Trn_EndSubs
-        FROM Tournoi
-        WHERE Trn_Id = @Trn_Id;
-
-        -- Vérifier si le nombre de joueurs inscrits est suffisant
-        IF @PlayerCount < @Trn_MinUsers OR @PlayerCount > @Trn_MaxUsers OR [dbo].X_SF_Trn_EndSubs(@Trn_EndSubs) < 0 
-        BEGIN
-            RAISERROR ('Toutes les conditions pour démarrer un tournoi ne sont pas respectées', 16, 1);
-            RETURN;
-        END
-        ELSE
-        BEGIN
-            IF ((@PlayerCount % 2) = 0) AND (@PlayerCount <= @Trn_MaxUsers)
-            BEGIN
-                PRINT('PlayerCount ' + CAST(@PlayerCount AS VARCHAR(10)) + ' MaxUsers ' + CAST(@Trn_MaxUsers AS VARCHAR(10)));
-            END
-            ELSE IF (@PlayerCount % 2 <> 0) AND (@PlayerCount <= (@Trn_MaxUsers - 1))
-            BEGIN
-                -- Ajouter le joueur fictif si le nombre de joueurs est impair et que Trn_MaxUsers est bien < ou = à Trn_MaxUsers diminué de 1
-                INSERT INTO Subscribe (Sub_Usr_Id, Sub_Trn_Id, Sub_Date, Sub_Active)
-                VALUES (1, @Trn_Id, GETDATE(), 1);
-                SET @PlayerCount = @PlayerCount + 1;
-            END
-            ELSE
-            BEGIN
-                DECLARE @MESSAGE VARCHAR(300) = 'PlayerCount ' + CAST(@PlayerCount AS VARCHAR(10)) + ' MaxUsers ' + CAST(@Trn_MaxUsers AS VARCHAR(10)) + ' Toutes les conditions pour ajouter un utilisateur fictif ne sont pas respectées';
-                RAISERROR (@MESSAGE, 16, 1);
-                RETURN;
-            END
-        END
-
-        -- Insérer les parties pour les matchs aller
-        DECLARE @Player1_Id INT;
-        DECLARE @Player2_Id INT;
-        DECLARE @Round INT = 1;
-        DECLARE @PartieNum INT = 1;
-
-        DECLARE PlayerCursor CURSOR FOR
-        SELECT Sub_Usr_Id
-        FROM Subscribe
-        WHERE Sub_Trn_Id = @Trn_Id;
-
-        OPEN PlayerCursor;
-        FETCH NEXT FROM PlayerCursor INTO @Player1_Id;
-
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            DECLARE InnerCursor CURSOR FOR
-            SELECT Sub_Usr_Id
-            FROM Subscribe
-            WHERE Sub_Trn_Id = @Trn_Id AND Sub_Usr_Id > @Player1_Id;
-
-            OPEN InnerCursor;
-            FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-
-            WHILE @@FETCH_STATUS = 0
-            BEGIN
-                -- Vérifier que les joueurs ne se rencontrent pas eux-mêmes
-                IF @Player1_Id <> @Player2_Id
-                BEGIN
-                    -- Insérer la partie pour le match aller
-                    INSERT INTO Partie (Trn_Id, Usr_Id_W, Usr_Id_B, Trn_Round, Par_num)
-                    VALUES (@Trn_Id, @Player1_Id, @Player2_Id, @Round, @PartieNum);
-
-                    -- Incrémenter le numéro de partie pour le prochain match
-                    SET @PartieNum = @PartieNum + 1;
-                END
-
-                FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-            END;
-
-            CLOSE InnerCursor;
-            DEALLOCATE InnerCursor;
-
-            -- Passer à la prochaine ronde
-            SET @Round = @Round + 1;
-
-            FETCH NEXT FROM PlayerCursor INTO @Player1_Id;
-        END;
-
-        CLOSE PlayerCursor;
-        DEALLOCATE PlayerCursor;
-
-        -- Réinitialiser les variables pour les matchs retour
-        SET @Round = 1;
-
-        -- Insérer les parties pour les matchs retour
-        DECLARE PlayerCursor2 CURSOR FOR
-        SELECT Sub_Usr_Id
-        FROM Subscribe
-        WHERE Sub_Trn_Id = @Trn_Id;
-
-        OPEN PlayerCursor2;
-        FETCH NEXT FROM PlayerCursor2 INTO @Player1_Id;
-
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            DECLARE InnerCursor CURSOR FOR
-            SELECT Sub_Usr_Id
-            FROM Subscribe
-            WHERE Sub_Trn_Id = @Trn_Id AND Sub_Usr_Id > @Player1_Id;
-
-            OPEN InnerCursor;
-            FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-
-            WHILE @@FETCH_STATUS = 0
-            BEGIN
-                -- Vérifier que les joueurs ne se rencontrent pas eux-mêmes
-                IF @Player1_Id <> @Player2_Id
-                BEGIN
-                    -- Insérer la partie pour le match retour
-                    INSERT INTO Partie (Trn_Id, Usr_Id_W, Usr_Id_B, Trn_Round, Par_num)
-                    VALUES (@Trn_Id, @Player2_Id, @Player1_Id, @Round + @PlayerCount - 1, @PartieNum);
-
-                    -- Incrémenter le numéro de partie pour le prochain match
-                    SET @PartieNum = @PartieNum + 1;
-                END
-
-                FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-            END;
-
-            CLOSE InnerCursor;
-            DEALLOCATE InnerCursor;
-
-            -- Passer à la prochaine ronde
-            SET @Round = @Round + 1;
-
-            FETCH NEXT FROM PlayerCursor2 INTO @Player1_Id;
-        END;
-
-        CLOSE PlayerCursor2;
-        DEALLOCATE PlayerCursor2;
-
-
-
-
-
-    END TRY
-    BEGIN CATCH
-        -- Gérer les erreurs
-        DECLARE @ErrorMessage NVARCHAR(4000);
-        DECLARE @ErrorSeverity INT;
-        DECLARE @ErrorState INT;
-
-        SELECT 
-            @ErrorMessage = ERROR_MESSAGE(),
-            @ErrorSeverity = ERROR_SEVERITY(),
-            @ErrorState = ERROR_STATE();
-
-        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
-    END CATCH
-END;
-
-/*
-CREATE PROCEDURE X_SP_CreatMatch(@Trn_Id INT)
-AS
-BEGIN
-    BEGIN TRY
-        -- Vérifier et mettre à jour le statut du tournoi
-        DECLARE @PlayerCount INT;
-        DECLARE @Trn_MinUsers INT;
-        DECLARE @Trn_MaxUsers INT;
-        DECLARE @Trn_EndSubs DATETIME;
-
-        -- Compter le nombre de joueurs inscrits
-        SELECT @PlayerCount = COUNT(*)
-        FROM Subscribe
-        WHERE Sub_Trn_Id = @Trn_Id;
-
-        -- Obtenir le nombre minimum et maximum de joueurs requis
-        SELECT @Trn_MinUsers = Trn_MinUsers, @Trn_MaxUsers = Trn_MaxUsers, @Trn_EndSubs = Trn_EndSubs
-        FROM Tournoi
-        WHERE Trn_Id = @Trn_Id;
-
-        -- Vérifier si le nombre de joueurs inscrits est suffisant
-        IF @PlayerCount < @Trn_MinUsers OR @PlayerCount > @Trn_MaxUsers OR [dbo].X_SF_Trn_EndSubs(@Trn_EndSubs) < 0 
-        BEGIN
-            RAISERROR ('Toutes les conditions pour démarrer un tournoi ne sont pas respectées', 16, 1);
-            RETURN;
-        END
-
-        
-        ELSE
-        BEGIN
-            
-            IF ((@PlayerCount % 2) = 0) AND (@PlayerCount <= @Trn_MaxUsers)
-            BEGIN
-                PRINT('PlayerCount ' + CAST(@PlayerCount AS VARCHAR(10)) + ' MaxUsers ' + CAST(@Trn_MaxUsers AS VARCHAR(10)));
-            END
-            ELSE IF (@PlayerCount % 2 <> 0) AND (@PlayerCount <= (@Trn_MaxUsers - 1))
-            BEGIN
-                 -- Ajouter le joueur fictif si le nombre de joueurs est impair et que Trn_MaxUsers est bien < ou = à Trn_MaxUsers diminué de 1
-                INSERT INTO Subscribe (Sub_Usr_Id, Sub_Trn_Id, Sub_Date, Sub_Active)
-                VALUES (1, @Trn_Id, GETDATE(), 1);
-                SET @PlayerCount = @PlayerCount + 1;
-            END
-            ELSE
-            BEGIN
-                DECLARE @MESSAGE VARCHAR(300) = 'PlayerCount ' + CAST(@PlayerCount AS VARCHAR(10)) + ' MaxUsers ' + CAST(@Trn_MaxUsers AS VARCHAR(10)) + ' Toutes les conditions pour ajouter un utilisateur fictif ne sont pas respectées';
-                RAISERROR (@MESSAGE, 16, 1);
-                RETURN;
-            END
-        END
-
-     
-        -- Insérer les parties pour les matchs aller
-        DECLARE @Player1_Id INT;
-        DECLARE @Player2_Id INT;
-        DECLARE @Round INT = 1;
-        DECLARE @PartieNum INT = 1;
-
-        DECLARE PlayerCursor CURSOR FOR
-        SELECT Sub_Usr_Id
-        FROM Subscribe
-        WHERE Sub_Trn_Id = @Trn_Id;
-
-        OPEN PlayerCursor;
-        FETCH NEXT FROM PlayerCursor INTO @Player1_Id;
-
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            DECLARE InnerCursor CURSOR FOR
-            SELECT Sub_Usr_Id
-            FROM Subscribe
-            WHERE Sub_Trn_Id = @Trn_Id AND Sub_Usr_Id > @Player1_Id;
-
-            OPEN InnerCursor;
-            FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-
-            WHILE @@FETCH_STATUS = 0
-            BEGIN
-                -- Vérifier que les joueurs ne se rencontrent pas eux-mêmes
-                IF @Player1_Id <> @Player2_Id
-                BEGIN
-                    -- Insérer la partie pour le match aller
-                    INSERT INTO Partie (Trn_Id, Usr_Id_W, Usr_Id_B, Trn_Round, Par_num)
-                    VALUES (@Trn_Id, @Player1_Id, @Player2_Id, @Round, @PartieNum);
-
-                    -- Incrémenter le numéro de partie pour le prochain match
-                    SET @PartieNum = @PartieNum + 1;
-                END
-
-                FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-            END;
-
-            CLOSE InnerCursor;
-            DEALLOCATE InnerCursor;
-
-            -- Passer à la prochaine ronde
-            SET @Round = @Round + 1;
-
-            FETCH NEXT FROM PlayerCursor INTO @Player1_Id;
-        END;
-
-        CLOSE PlayerCursor;
-        DEALLOCATE PlayerCursor;
-
-        -- Réinitialiser les variables pour les matchs retour
-        SET @Round = 1;
-
-        -- Insérer les parties pour les matchs retour
-        OPEN PlayerCursor;
-        FETCH NEXT FROM PlayerCursor INTO @Player1_Id;
-
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            DECLARE InnerCursor CURSOR FOR
-            SELECT Sub_Usr_Id
-            FROM Subscribe
-            WHERE Sub_Trn_Id = @Trn_Id AND Sub_Usr_Id > @Player1_Id;
-
-            OPEN InnerCursor;
-            FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-
-            WHILE @@FETCH_STATUS = 0
-            BEGIN
-                -- Vérifier que les joueurs ne se rencontrent pas eux-mêmes
-                IF @Player1_Id <> @Player2_Id
-                BEGIN
-                    -- Insérer la partie pour le match retour
-                    INSERT INTO Partie (Trn_Id, Usr_Id_W, Usr_Id_B, Trn_Round, Par_num)
-                    VALUES (@Trn_Id, @Player2_Id, @Player1_Id, @Round + @PlayerCount - 1, @PartieNum);
-
-                    -- Incrémenter le numéro de partie pour le prochain match
-                    SET @PartieNum = @PartieNum + 1;
-                END
-
-                FETCH NEXT FROM InnerCursor INTO @Player2_Id;
-            END;
-
-            CLOSE InnerCursor;
-            DEALLOCATE InnerCursor;
-
-            -- Passer à la prochaine ronde
-            SET @Round = @Round + 1;
-
-            FETCH NEXT FROM PlayerCursor INTO @Player1_Id;
-        END;
-
-        CLOSE PlayerCursor;
-        DEALLOCATE PlayerCursor;
-    END TRY
-    BEGIN CATCH
-        -- Gérer les erreurs
-        DECLARE @ErrorMessage NVARCHAR(4000);
-        DECLARE @ErrorSeverity INT;
-        DECLARE @ErrorState INT;
-
-        SELECT 
-            @ErrorMessage = ERROR_MESSAGE(),
-            @ErrorSeverity = ERROR_SEVERITY(),
-            @ErrorState = ERROR_STATE();
-
-        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
-    END CATCH
-END; */
-
-
-
-/*CREATE PROCEDURE X_SP_CreatMatch(@Trn_Id INT)
-AS
-BEGIN
 -- Vérifier et mettre à jour le statut du tournoi
+
 DECLARE @PlayerCount INT;
 DECLARE @Trn_MinUsers INT;
 DECLARE @Trn_MaxUsers INT;
@@ -352,13 +20,14 @@ SELECT @Trn_MinUsers = Trn_MinUsers, @Trn_MaxUsers = Trn_MaxUsers, @Trn_EndSubs 
 FROM Tournoi
 WHERE Trn_Id = @Trn_Id;
 
--- Vérifier si le nombre de joueurs inscrits est suffisant et la date de fin de subscription pas dépassée
-    IF @PlayerCount < @Trn_MinUsers OR @PlayerCount > @Trn_MaxUsers OR [dbo].X_SF_Trn_EndSubs(@Trn_EndSubs) < 0
+-- Vérifier si le nombre de joueurs inscrits est suffisant
+IF @PlayerCount < @Trn_MinUsers AND @PlayerCount > @Trn_MaxUsers AND [dbo].X_SF_Trn_EndSubs(@Trn_EndSubs) < 0 
 BEGIN
     PRINT 'Toutes les conditions pour demarrer un tournoi ne sont pas respectees';
 END
 ELSE
 BEGIN
+
             -- Ajouter le joueur fictif si le nombre de joueurs est impair et que Trn_MaxUsers est bien < ou = à Trn_Maxusers diminué de 1
             IF (@PlayerCount % 2 <> 0) AND (@PlayerCount <= (@Trn_MaxUsers-1))
             BEGIN
@@ -370,6 +39,7 @@ BEGIN
             BEGIN
                 PRINT 'Toutes les conditions pour ajouter un utilisateur fictif ne sont pas respectees';
             END
+
 
             -- Insérer les parties pour les matchs aller
             DECLARE @Player1_Id INT;
@@ -468,7 +138,7 @@ BEGIN
             CLOSE PlayerCursor;
             DEALLOCATE PlayerCursor;
 END  /*FIN DU IF DES CONDITIONS*/
-END; */
+END;
 
 
 
