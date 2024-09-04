@@ -10,4 +10,16 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
+    <Folder Include="Mappers\" />
+    <Folder Include="Tools\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChessTournament_BLL\ChessTournament_BLL.csproj" />
+    <ProjectReference Include="..\ChessTournament_COMMON\ChessTournament_COMMON.csproj" />
+    <ProjectReference Include="..\ChessTournament_DAL\ChessTournament_DAL.csproj" />
+  </ItemGroup>
+
 </Project>
