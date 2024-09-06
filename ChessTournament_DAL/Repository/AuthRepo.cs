@@ -17,15 +17,15 @@ namespace ChessTournament_DAL.Repository
             _cs = config.GetConnectionString("DefaultConnection");
         }
 
-        public int GetIdLoginAction(string email, string password)
-        {
-            try
-            {
+        //public int GetIdLoginAction(string email, string password)
+        //{
+        //    try
+        //    {
 
-                throw new NotImplementedException();
-            }
-            catch { }
-        }
+        //        throw new NotImplementedException();
+        //    }
+        //    catch { }
+        //}
 
         public User? GetUserInfo(int id)
         {

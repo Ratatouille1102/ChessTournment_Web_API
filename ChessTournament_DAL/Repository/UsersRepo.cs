@@ -32,10 +32,10 @@ namespace ChessTournament_DAL.Respositories
                 Usr_Pseudo = reader["Usr_Pseudo"].ToString(),
                 Usr_Email = reader["Usr_Email"].ToString(),
                 Usr_Birthdate = (DateTime)reader["Usr_Birthdate"],
-                Usr_Genre = (int)reader["Usr_Genre"],
+                Usr_Genre = (short)reader["Usr_Genre"],
                 Usr_Firstname = reader["Usr_Firstname"].ToString(),
                 Usr_Lastname = reader["Usr_Lastname"].ToString(),
-                Usr_Elo = (int)reader["Usr_Elo"],
+                Usr_Elo = (short)reader["Usr_Elo"],
                 Usr_Role = (bool)reader["Usr_Role"],
                 Usr_InActive = (bool)reader["Usr_InActive"]
 
@@ -44,7 +44,7 @@ namespace ChessTournament_DAL.Respositories
 
         public List<User> GetAll()
         {
-            List<User> list = new List<User();
+            List<User> list = new List<User>();
 
             using (SqlConnection cnx = new SqlConnection(_connectionString))
             {

@@ -1,0 +1,105 @@
+Créer une nouvelle branche en git
+
+1 démarrer Gitbash here
+partir du dossier de source du projet par un click droit dans le vide dossier.
+
+2 Créer la branche (la copie se 
+git branch nouvellebranche
+git checkout nouvellebranche
+
+
+
+switch de branches - Commit, Merge, Push
+
+1 démarrer Gitbash here
+partir du dossier de source du projet.
+
+2 checkout te permet de donner le nom de la branche pour basculer
+
+3 commit les 2 branches
+Exemple 1 : 
+	git checkout master 
+	git commit master
+	git checkout dev
+	git commit dev
+
+4 Pour faire un merge
+	=> Se mettre sur la branche ou tu veux rapatrier les éléments
+
+	Ex1: 
+		git checkout master 
+		git merge master
+
+	Ex2 : 	git checkout dev
+		git merge dev
+
+5 En cas de conflit 
+	code . 
+		permet de visualiser les changements dans le VS Code et de faire les opérations de validation nécessaires
+
+6 Enfin faire un push vers le repository
+
+    git push --set-upstream origin dev
+
+
+
+
+
+
+
+DES ASTUCES EN PLUS : 
+
+
+# Git
+
+## Local
+
+- Ajouter un fichier dans le «staging area»
+    ```bash
+    git add [nomDuFichier]
+    ```
+
+- Ajouter tous les fichiers dans le «staging area»
+    ```bash
+    git add .
+    ```
+
+- Créer un point de sauvegarde dans le «local repository»  (commit)
+    ```bash
+    git commit -m "message du commit"
+    ```
+
+- Afficher l'historique des commits 
+    ```bash
+    git log
+    ```
+
+- Se déplacer dans les points de sauvegarde
+    ```bash
+    git checkout [id du commit ou nom de la branche]
+    ```
+
+## Remote
+
+- Cloner un «remote repository»
+    ```bash
+    git clone [url du remote]
+    ```
+
+- lier un «local repository» avec un «remote repository»
+    ```bash
+    git remote add [nom du remote] [url du remote]
+    ```
+
+- Synchroniser depuis le «local repository» vers le «remote repository»
+    ```bash
+    git push [nom du remote] [nom de branche]
+    ```
+
+- Synchroniser depuis le «remote repository» vers le «local repository»
+    ```bash
+    git pull [nom du remote] [nom de branche]
+    ```
+
+ 
+
